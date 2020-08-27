@@ -1,0 +1,89 @@
+/* Primary classes */
+
+.root {
+    font-family: 'Lucida Console';
+    max-width: 600px;
+    background-color: lightgrey;
+    word-wrap: break-word;
+}
+
+.head{
+    background-color: darkblue;
+    display: grid;
+    padding: 10px 10px 10px 10px;
+    grid-template-columns: 20% 60% 20%; 
+}
+
+.header {
+    text-align: center;
+    font-weight: bold;
+    color: white;
+}
+
+/* home.js */
+
+#layer-list-search {
+    padding: 10px 10px 0px 10px;
+    display: grid;
+    grid-template-columns: 20% 60% 20%;
+}
+
+#layer-list-header {
+    padding: 10px 10px 10px 10px;
+    display: grid;
+    grid-template-columns: 20% 60% 20%;
+}
+
+#layer-list-entry {
+    border-top: solid;
+    border-top-color: grey;
+    padding: 10px 10px 10px 10px;
+    display: grid;
+    grid-template-columns: 20% 80%;
+}
+
+#left-ten {
+    padding-left: 10px;
+    display: grid;
+    grid-template-columns: 100%; 
+}
+
+/* create.js */
+
+#layer-name-element{
+    padding: 10px 10px 10px 10px;
+    display: grid;
+    grid-template-columns: 20% 60%; 
+}
+
+#field-section {
+    padding: 10px 10px 10px 10px;
+    border-top: solid;
+    border-top-color: grey;
+}
+
+#field-meta-section {
+    display: grid;
+    grid-template-columns: 20% 60%; 
+}
+
+#code-section {
+    padding-top: 10px;
+    display: grid;
+    grid-template-columns: 20% 60% 20%;
+}
+
+#field-foot-section {
+    padding-top: 10px;
+    display: grid;
+    grid-template-columns: 20% 60% 20%;
+}
+
+#form-foot-section {
+    padding: 10px 10px 10px 10px;
+    border-top: solid;
+    border-top-color: grey;
+    display: grid;
+    grid-template-columns: 20% 60% 20%;
+}
+

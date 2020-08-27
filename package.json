@@ -1,0 +1,18 @@
+{
+  "name": "cybertracker-esri",
+  "version": "1.0.0",
+  "description": "An interface for the creation of data collection templates for the CyberTracker Esri mobile data capture software.",
+  "main": "index.js",
+  "scripts": {
+    "start": "webpack src/index.js --output bin/app.js -d --watch"
+  },
+  "author": "Lucas Bradley",
+  "license": "ISC",
+  "dependencies": {
+    "mithril": "^2.0.4"
+  },
+  "devDependencies": {
+    "webpack": "^4.44.1",
+    "webpack-cli": "^3.3.12"
+  }
+}
