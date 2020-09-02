@@ -15,7 +15,7 @@ let form = {
 
 let fields = {
     view: () => {
-        return [].concat(form["fields"].map((field, index) => {
+        return [].concat(form["fields"].map((field, findex) => {
             return [
                 m("div", {
                     id: "field-section"
@@ -57,7 +57,7 @@ let fields = {
                         }, "Browse"),
                     ]),
 
-                    m("div", [].concat(field.code.map((code, index) => {
+                    m("div", [].concat(form["fields"][findex]["code"].map((code, cindex) => {
                         return m("div", {
                             id: "code-section"
                         }, [
@@ -69,7 +69,7 @@ let fields = {
                             }),
                             m("button", {
                                 onclick: () => {
-                                    code.splice(index, 1);
+                                    form["fields"][findex]["code"].splice(cindex, 1);
                                 }
                             }, "Delete Code"),
                             m("div", "Code Image"),
@@ -97,7 +97,7 @@ let fields = {
                         m("div"),
                         m("button", {
                             onclick: () => {
-                                form["fields"].splice(index, 1);
+                                form["fields"].splice(findex, 1);
                             }
                         }, "Delete Field")
                     ])

@@ -25,8 +25,6 @@ let load = async () => {
     })
     sessionStorage.setItem("state", JSON.stringify(state));
     layers = state["layers"];
-
-    console.log(state);
 }
 
 module.exports = {

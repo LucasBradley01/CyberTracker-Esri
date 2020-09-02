@@ -1,5 +1,10 @@
 /* Primary classes */
 
+textarea, button, input {
+    font-family: 'Lucida Console';
+    font-size: 13px;
+}
+
 .root {
     font-family: 'Lucida Console';
     max-width: 600px;

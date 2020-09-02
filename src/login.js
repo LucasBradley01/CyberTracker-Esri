@@ -12,13 +12,12 @@ let login = async () => {
         CTLayers: null,
         CTIcons: null,
         CTConfigs: null,
-        CTQml: null,
         layers: [],
     }
     
     // Step 1: get a token from ArcGIS
     let body = new FormData();
-    body.append("referer", "https://www.arcgis.com");
+    body.append("referer", "https://cybertracker.z13.web.core.windows.net/");
     body.append("expiration", "280");
     body.append("f", "json");
     body.append("username", username);
@@ -53,7 +52,7 @@ let login = async () => {
     }
 
     // These are the folders that we need ArcGIS to have
-    const folders = ["CTLayers", "CTIcons", "CTConfigs", "CTQml"];
+    const folders = ["CTLayers", "CTIcons", "CTConfigs"];
 
     for (let i = 0; i < response["folders"].length; i++) {
         let title = response["folders"][i]["title"];

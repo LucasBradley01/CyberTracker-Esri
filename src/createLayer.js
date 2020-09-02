@@ -1,13 +1,13 @@
 let m = require("mithril");
 
+const state = JSON.parse(sessionStorage.getItem("state"));
+
 let config = {
     type: "FeatureCollection"
 }
 
 // Mission: create a layer on ArcGIS
-async function createLayer(form) {
-    const state = JSON.parse(sessionStorage.getItem("state"));
-    
+async function createLayer(form) {    
     // Step 1: Create a Feature Serviec on ArcGIS using their
     // REST API createService call
     let body = new FormData();
@@ -72,103 +72,122 @@ async function createLayer(form) {
     const itemId = response["itemId"];
 
     let layer = {
-        "layers": [
-            {
-                "adminLayerInfo":
+        "layers": [{
+            "adminLayerInfo": {
+                "geometryField": {
+                    "name": "Shape",
+                    "srid":4326
+                }
+            },
+            "name": form["name"],
+            "type": "Feature Layer",
+            "displayField": "",
+            "description": form["description"],
+            "copyrightText": "",
+            "defaultVisibility": true,
+            "relationships": [],
+            "isDataVersioned": false,
+            "supportsRollbackOnFailureParameter": true,
+            "supportsAdvancedQueries": true,
+            "geometryType": "esriGeometryPoint",
+            "minScale": 0,
+            "maxScale": 0,
+            "extent": {
+                "xmin": -161.69675114151386,
+                "ymin": -72.6726762942099,
+                "xmax": 161.69675114151386,
+                "ymax": 80.69452318405212,
+                "spatialReference": {
+                    "wkid":4326
+                }
+            },
+            "drawingInfo": {
+                "transparency": 0,
+                "labelingInfo": null,
+                "renderer": {
+                    "type": "simple",
+                    "symbol": {
+                        "color": [20,158,206,130],
+                        "size": 18,
+                        "angle": 0,
+                        "xoffset": 0,
+                        "yoffset": 0,
+                        "type": "esriSMS",
+                        "style": "esriSMSCircle",
+                        "outline": {
+                            "color": [255,255,255,220],
+                            "width": 2.25,
+                            "type": "esriSLS",
+                            "style": "esriSLSSolid"
+                        }
+                    }
+                }
+            },
+            "allowGeometryUpdates": true,
+            "hasAttachments": true,
+            "htmlPopupType": "esriServerHTMLPopupTypeNone",
+            "hasM": false,
+            "hasZ": false,
+            "objectIdField": "OBJECTID",
+            "globalIdField": "",
+            "typeIdField": "",
+            "fields": [
                 {
-                    "geometryField": {
-                        "name": "Shape",
-                        "srid":4326
-                    }
+                    "name": "OBJECTID",
+                    "type": "esriFieldTypeOID",
+                    "alias": "OBJECTID",
+                    "sqlType": "sqlTypeOther",
+                    "nullable": false,
+                    "editable": false,
+                    "domain": null,
+                    "defaultValue":null
                 },
-                "name": form["name"],
-                "type": "Feature Layer",
-                "displayField": "",
-                "description": form["description"],
-                "copyrightText": "",
-                "defaultVisibility": true,
-                "relationships": [],
-                "isDataVersioned": false,
-                "supportsRollbackOnFailureParameter": true,
-                "supportsAdvancedQueries": true,
-                "geometryType": "esriGeometryPoint",
-                "minScale": 0,
-                "maxScale": 0,
-                "extent": {
-                    "xmin": -161.69675114151386,
-                    "ymin": -72.6726762942099,
-                    "xmax": 161.69675114151386,
-                    "ymax": 80.69452318405212,
-                    "spatialReference": {
-                        "wkid":4326
-                    }
+                {
+                    "name": "createTime",
+                    "type": "esriFieldTypeDate",
+                    "alias": "Create Time",
+                    "sqlType": "sqlTypeTimestamp2",
+                    "nullable": true,
+                    "editable": true,
+                    "domain": null,
+                    "defaultValue": null,
                 },
-                "drawingInfo": {
-                    "transparency": 0,
-                    "labelingInfo": null,
-                    "renderer": {
-                        "type": "simple",
-                        "symbol": {
-                            "color": [20,158,206,130],
-                            "size": 18,
-                            "angle": 0,
-                            "xoffset": 0,
-                            "yoffset": 0,
-                            "type": "esriSMS",
-                            "style": "esriSMSCircle",
-                            "outline": {
-                                "color": [255,255,255,220],
-                                "width": 2.25,
-                                "type": "esriSLS",
-                                "style": "esriSLSSolid"
-                            }
-                        }
-                    }
-                },
-                "allowGeometryUpdates": true,
-                "hasAttachments": true,
-                "htmlPopupType": "esriServerHTMLPopupTypeNone",
-                "hasM": false,
-                "hasZ": false,
-                "objectIdField": "OBJECTID",
-                "globalIdField": "",
-                "typeIdField": "",
-                "fields": [
-                    {
-                        "name": "OBJECTID",
-                        "type": "esriFieldTypeOID",
-                        "alias": "OBJECTID",
-                        "sqlType": "sqlTypeOther",
-                        "nullable": false,
-                        "editable": false,
-                        "domain": null,
-                        "defaultValue":null
-                    },
-                ],
-                "indexes": [],
-                "types": [],
-                "templates": [
-                    {
-                        "name": "New Feature",
-                        "description": "",
+                {
+                    "name": "updateTime",
+                    "type": "esriFieldTypeDate",
+                    "alias": "Update Time",
+                    "sqlType": "sqlTypeTimestamp2",
+                    "nullable": true,
+                    "editable": true,
+                    "domain": null,
+                    "defaultValue": null,
+                }
+            ],
+            "indexes": [],
+            "types": [],
+            "templates": [
+                {
+                    "name": "New Feature",
+                    "description": "",
                         "drawingTool": "esriFeatureEditToolPoint",
-                        "prototype": {
-                            "attributes": {}
-                        }
+                    "prototype": {
+                        "attributes": {}
                     }
-                ],
-                "supportedQueryFormats": "JSON",
-                "hasStaticData": true,
-                "maxRecordCount": 10000,
-                "capabilities": "Query"
-            }
-        ]
+                }
+            ],
+            "supportedQueryFormats": "JSON",
+            "hasStaticData": true,
+            "maxRecordCount": 10000,
+            "capabilities": "Query"
+        }]
     };
 
-    for (let i = 0; i < form["fields"].length; i++) {        
-        let field = form["fields"][i];
-        let squlType;
+    for (let i = 0; i < form["fields"].length; i++) {  
+        let field = form["fields"][i];            
+        let title = form["name"] + "_" + field["name"];  
         let length = null;
+        let squlType;
+
         switch(field["type"]) {
             case "esriFieldTypeString":
                 squlType = "sqlTypeNVarchar";
@@ -180,39 +199,20 @@ async function createLayer(form) {
             default:
                 squlType = "sqlTypeFloat";
         }
-
-        let domain = null;
-        if (field["code"].length > 0) {
-            let codedValues = [];
-            
-            for (let j = 0; j < field["code"].length; j++) {
-                let value = field["code"][j]["value"];
-                codedValues.push({
-                    name: value,
-                    code: value
-                })
-            }
-
-            domain = {
-                type: "codedValue",
-                codedValues: codedValues,
-                name: field["name"]
-            }
-        }
         
         layer["layers"][0]["fields"].push({
-            "name": field["name"],
+            "name": title,
             "type": field["type"],
             "alias": field["name"],
             "sqlType": squlType,
             "nullable": true,
             "editable": true,
-            "domain": domain,
+            "domain": null,
             "defaultValue": null,
             "length": length
         });
 
-        layer["layers"][0]["templates"][0]["prototype"]["attributes"][form["fields"][i]["name"]] = null;
+        layer["layers"][0]["templates"][0]["prototype"]["attributes"][title] = null;
     }
 
     body = new FormData();
@@ -263,7 +263,7 @@ async function uploadIcons(name, img) {
 
     config[name] = img["name"];
 
-    const state = JSON.parse(sessionStorage.getItem("state"));
+    
 
     let body = new FormData();
     body.append("file", img);
@@ -286,13 +286,64 @@ async function uploadIcons(name, img) {
 }
 
 async function uploadConfigs(form) {
-    const state = JSON.parse(sessionStorage.getItem("state"));
+    
+    const configFile = new Blob([
+        JSON.stringify(config)
+    ], {
+        type: "application/json"
+    });
 
     let body = new FormData();
-    body.append("file", config);
+    body.append("file", configFile);
     body.append("f", "json");
     body.append("token", state["token"]);
-    body.append("title", form["name"]);
+    body.append("title", form["name"] + "IconMap");
+    body.append("type", "GeoJson");
+
+    let url = "https://www.arcgis.com/sharing/rest/content/users/" + state["username"] + "/" + state["CTConfigs"] + "/addItem";
+
+    let response = await m.request({
+        url: url,
+        method: "POST",
+        body: body
+    })
+
+    if (response["error"]) {
+        console.log(response);
+        return;
+    }
+}
+
+async function uploadList(form) {
+    let lists = {
+        type: "FeatureCollection"
+    }
+
+    for (let i = 0; i < form["fields"].length; i++) {
+        let field = form["fields"][i];            
+        let title = form["name"] + "_" + field["name"];  
+        
+        if (field["code"].length > 0) {
+            lists[field["name"]] = {}
+            
+            for (let j = 0; j < field["code"].length; j++) {
+                let value = field["code"][j]["value"];
+                lists[field["name"]][title + "_" + value] = value;
+            }
+        }
+    }
+
+    const listsFile = new Blob([
+        JSON.stringify(lists)
+    ], {
+        type: "application/json"
+    });
+
+    let body = new FormData();
+    body.append("file", listsFile);
+    body.append("f", "json");
+    body.append("token", state["token"]);
+    body.append("title", form["name"] + "Lists");
     body.append("type", "GeoJson");
 
     let url = "https://www.arcgis.com/sharing/rest/content/users/" + state["username"] + "/" + state["CTConfigs"] + "/addItem";
@@ -318,12 +369,17 @@ module.exports = (formData) => {
     // Upload Icons
     uploadIcons(form["name"], form["img"]);
     for (let i = 0; i < form["fields"].length; i++) {
-        uploadIcons(form["fields"][i]["name"], form["fields"][i]["img"]);
+        // layername_fieldname
+        let fieldname = form["name"] + "_" + form["fields"][i]["name"];
+        uploadIcons(fieldname, form["fields"][i]["img"]);
+
+        // layername_fieldname_value
         for (let j = 0; j < form["fields"][i]["code"].length; j++) {
-            uploadIcons(form["fields"][i]["code"][j]["value"], form["fields"][i]["code"][j]["img"]);
+            uploadIcons(fieldname + "_" + form["fields"][i]["code"][j]["value"], form["fields"][i]["code"][j]["img"]);
         }
     }
     
     // Upload Configs
+    uploadList(form);
     uploadConfigs(form);
 }
