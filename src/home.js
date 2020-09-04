@@ -32,7 +32,7 @@ module.exports = {
         const state = JSON.parse(sessionStorage.getItem("state"));
         const time = new Date();
         
-        if (state === null || state === undefined || state["expires"] < time.getTime()) {
+        if (!state || state["expires"] < time.getTime()) {
             m.route.set("/login");
         }
 

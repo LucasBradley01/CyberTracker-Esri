@@ -92,3 +92,10 @@ textarea, button, input {
     grid-template-columns: 20% 60% 20%;
 }
 
+#invalid {
+    background-color: yellow;
+}
+
+#valid {
+    
+}

@@ -9,10 +9,11 @@ let login = async () => {
         username: username,
         token: null,
         expires: null,
-        CTLayers: null,
+        CTBundles: null,
+        CTMetadata: null,
         CTIcons: null,
-        CTConfigs: null,
-        layers: [],
+        CTLayers: null,
+        layers: []
     }
     
     // Step 1: get a token from ArcGIS
@@ -52,7 +53,7 @@ let login = async () => {
     }
 
     // These are the folders that we need ArcGIS to have
-    const folders = ["CTLayers", "CTIcons", "CTConfigs"];
+    const folders = ["CTBundles", "CTMetadata", "CTIcons", "CTLayers"];
 
     for (let i = 0; i < response["folders"].length; i++) {
         let title = response["folders"][i]["title"];
@@ -96,7 +97,7 @@ module.exports = {
         const state = JSON.parse(sessionStorage.getItem("state"));
         const time = new Date();
         
-        if (state !== null && state !== undefined && state["expires"] > time.getTime()) {
+        if (state && state["expires"] > time.getTime()) {
             m.route.set("/home");
         }        
     },
