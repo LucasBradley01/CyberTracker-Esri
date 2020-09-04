@@ -1,8 +1,5 @@
 let m = require("mithril");
 let createExecute = require("./createExecute");
-const state = JSON.parse(sessionStorage.getItem("state"));
-
-let invalids = 0;
 
 let form = {
     name: null,
@@ -16,12 +13,12 @@ let form = {
     }],
 }
 
-// 0 48
+// 0 48 -
 // 9 57 
-// A 65
+// A 65 -
 // Z 90
 // _ 95
-// a 97
+// a 97 -
 // z 122
 
 function validChar(str) {
@@ -32,160 +29,6 @@ function validChar(str) {
         }
     }
     return true;
-}
-
-
-// Page Fields Section
-let fields = {
-    view: () => {
-        return [].concat(form["fields"].map((field, findex) => {
-            return [
-                m("div", {
-                    id: "field-section"
-                }, [
-                    // Static Field Section
-                    m("div", {
-                        id: "field-meta-section"
-                    }, [   
-                        // Field Name                     
-                        m("div", "Field Name"),
-                        m("input", {
-                            oninput: (e) => {
-                                field["name"] = e["target"]["value"];
-
-                                let nameAvailable = true;
-                                if (field["name"] !== "") {
-                                    for (let i = 0; i < form["fields"].length; i++) {
-                                        if (i === findex) {
-                                            continue;
-                                        }
-    
-                                        if (form["fields"][i]["name"] === field["name"]) {
-                                            nameAvailable = false;
-                                            break;
-                                        }
-                                    }
-                                }
-
-                                if (!nameAvailable || !validChar(field["name"]) || field["name"] === "") {
-                                    e["target"]["id"] = "invalid";
-                                }
-                                else {
-                                    e["target"]["id"] = "valid";
-                                }
-                            },
-                            value: field["name"]
-                        }),
-
-                        // Field Type
-                        m("div", "Field Type"),
-                        m("select", {
-                            oninput: (e) => {
-                                field["type"] = e.target.value
-                            },
-                            value: field["type"]
-                        }, [
-                            m("option", {
-                                value: "esriFieldTypeString"
-                            }, "String"),
-                            m("option", {
-                                value: "esriFieldTypeInteger"
-                            }, "Integer"),
-                            m("option", {
-                                value: "esriFieldTypeDouble"
-                            }, "Double")
-                        ]),
-
-                        // Field Icon
-                        m("div", "Field Icon"),
-                        m("input", {
-                            type: "file",
-                            oninput: (e) => {
-                                field["img"] = e.target.files[0];
-                            },
-                            accept: "image/png, image/jpeg"
-                        }, "Browse"),
-                    ]),
-
-                    // Dynamic Code Section
-                    m("div", [].concat(field["code"].map((item, cindex) => {
-                        return m("div", {
-                            id: "code-section"
-                        }, [
-                            // Code Value
-                            m("div", "Code Value"),
-                            m("input", {
-                                oninput: (e) => {
-                                    item["name"] = e["target"]["value"];
-
-                                    let nameAvailable = true;
-                                    if (item["name"] !== "") {
-                                        for (let i = 0; i < field["code"].length; i++) {
-                                            if (i === cindex) {
-                                                continue;
-                                            }
-        
-                                            if (field["code"][i]["name"] === item["name"]) {
-                                                nameAvailable = false;
-                                                break;
-                                            }
-                                        }
-                                    }
-    
-                                    if (!nameAvailable || !validChar(item["name"])) {
-                                        e["target"]["id"] = "invalid";
-                                    }
-                                    else {
-                                        e["target"]["id"] = "valid";
-                                    }
-                                }
-                            }),
-
-                            // Delete Code Button
-                            m("button", {
-                                onclick: () => {
-                                    form["fields"][findex]["code"].splice(cindex, 1);
-                                }
-                            }, "Delete Code"),
-
-                            // Code Image
-                            m("div", "Code Image"),
-                            m("input", {
-                                type: "file",
-                                oninput: (e) => {
-                                    item["img"] = e.target.files[0];
-                                },
-                                accept: "image/png, image/jpeg"
-                            })
-                        ])
-                    }))),
-
-                    // Static Field Foot Section
-                    m("div", {
-                        id: "field-foot-section"
-                    }, [
-                        // Add Code
-                        m("button", {
-                            onclick: () => {
-                                field.code.push({
-                                    value: null,
-                                    img: null
-                                });
-                            }
-                        }, "Add Code"),
-                        m("div"),
-
-                        // Delete Field Button
-                        m("button", {
-                            onclick: () => {
-                                form["fields"].splice(findex, 1);
-                            }
-                        }, "Delete Field")
-                    ])
-                ]),
-            ]
-        }))
-    }
 }
 
 module.exports = {
@@ -199,6 +42,10 @@ module.exports = {
     },
 
     view: () => {
+        const state = JSON.parse(sessionStorage.getItem("state"));
+        
+        let formValid = true;
+
         return m("div", {
             class: "root"
         }, [
@@ -229,57 +76,252 @@ module.exports = {
             
             // Static Layer Name Section
             m("div", {
-                id: "layer-name-element"
+                class: "layer-name-element"
             }, [
                 // Layer Name
+                m("div"),
                 m("div", "Layer Name"),
+                m("div", "Layer Icon"),
+
+                m("div"),
                 m("input", {
                     oninput: (e) => {
                         form["name"] = e["target"]["value"];
-
-                        const nameInUse = state["layers"].find((layer) => {
-                            return layer["title"] === e.target.value;
-                        });
-
-                        if (nameInUse || !validChar(form["name"])) {
-                            e["target"]["id"] = "invalid";
-                        }
-                        else {
-                            e["target"]["id"] = "valid";
-                        }
                     },
                     value: form["name"],
-                    onfocusout: (e) => {
+                    class: (() => {
+                        const nameInUse = state["layers"].find((layer) => {
+                            return layer["title"] === form["name"];
+                        });
 
-                    }
+                        if (form["name"] === null || nameInUse || !validChar(form["name"]) || form["name"] === "") {
+                            return "invalid";
+                        }
+
+                        return "valid";
+                    })()
                 }),
 
                 // Layer Icon
-                m("div", "Layer Icon"),
                 m("input", {
                     type: "file",
                     oninput: (e) => {
                         form["img"] = e.target.files[0];
                     },
-                    accept: "image/png, image/jpeg"
+                    accept: "image/png, image/jpeg",
+                    class: (() => {
+                        if (form["img"] === null || form["img"]["type"] === "image/png" || form["img"]["type"] === "image/jpeg") {
+                            return "valid";
+                        }
+
+                        formValid = false;
+                        return "invalid";
+                    })()
                 }, "Browse"),
 
+
+            ]),
+
+            m("div", {
+                class: "layer-info-element"
+            }, [
                 // Layer Info
+                m("div"),
                 m("div", "Layer Info"),
+                m("div"),
                 m("textarea", {
                     oninput: (e) => {
                         form["description"] = e.target.value;
                     },
-                    value: form["description"]
+                    value: form["description"],
+                    class: "valid"
                 })
-            ]),
+            ]), 
             
             // Dynamic Fields Section
-            m(fields),
+            m("div", [].concat(form["fields"].map((field, findex) => {
+                return [
+                    m("div", {
+                        class: "field-section"
+                    }, [
+                        // Static Field Section
+                        m("div", {
+                            class: "field-meta-section"
+                        }, [   
+                            // Field Name                     
+                            m("div", "Field Name"),
+                            m("input", {
+                                oninput: (e) => {
+                                    field["name"] = e["target"]["value"];
+                                },
+                                value: field["name"],
+                                class: (() => {
+                                    let valid = true;
+                                    if (field["name"] === "" || field["name"] === null || !validChar(field["name"])) {
+                                        valid = false;
+                                    }
+                                    else {
+                                        for (let i = 0; i < form["fields"].length; i++) {
+                                            if (i === findex) {
+                                                continue;
+                                            }
+        
+                                            if (form["fields"][i]["name"] === field["name"]) {
+                                                valid = false;
+                                            }
+                                        }
+                                    }
+    
+                                    if (valid) {
+                                        return "valid";
+                                    }
+    
+                                    formValid = false;
+                                    return "invalid";
+                                })()
+                            }),
+    
+                            // Field Type
+                            m("div", "Field Type"),
+                            m("select", {
+                                oninput: (e) => {
+                                    field["type"] = e.target.value
+                                },
+                                value: field["type"],
+                                class: (() => {
+                                    if (field["type"] === null) {
+                                        formValid = false;
+                                        return "invalid";
+                                    }
+
+                                    return "valid";
+                                })()
+                            }, [
+                                m("option", {
+                                    value: "esriFieldTypeString"
+                                }, "String"),
+                                m("option", {
+                                    value: "esriFieldTypeInteger"
+                                }, "Integer"),
+                                m("option", {
+                                    value: "esriFieldTypeDouble"
+                                }, "Double")
+                            ]),
+    
+                            // Field Icon
+                            m("div", "Field Icon"),
+                            m("input", {
+                                type: "file",
+                                oninput: (e) => {
+                                    field["img"] = e.target.files[0];
+                                },
+                                accept: "image/png, image/jpeg",
+                                class: (() => {
+                                    if (field["img"] === null || field["img"]["type"] === "image/png" || field["img"]["type"] === "image/jpeg") {
+                                        return "valid";
+                                    }
+            
+                                    formValid = false;
+                                    return "invalid";
+                                })()
+                            }, "Browse"),
+                        ]),
+    
+                        // Dynamic Code Section
+                        m("div", [
+                            
+                        ].concat(field["code"].map((item, cindex) => {
+                            return m("div", {
+                                class: "code-section"
+                            }, [
+                                // Code Value
+                                m("div", "List Value"),
+                                m("input", {
+                                    oninput: (e) => {
+                                        form["fields"][findex]["code"][cindex]["value"] = e["target"]["value"];
+                                    },
+                                    class: (() => {
+                                        let valid = true;
+                                        if (item["value"] === "" || item["value"] === null || !validChar(item["value"])) {
+                                            valid = false;
+                                        }
+                                        else {
+                                            for (let i = 0; i < field["code"].length; i++) {
+                                                if (i === cindex) {
+                                                    continue;
+                                                }
+            
+                                                if (field["code"][i]["value"] === item["value"]) {
+                                                    valid = false;
+                                                }
+                                            }
+                                        }
+        
+                                        if (valid) {
+                                            return "valid";
+                                        }
+        
+                                        formValid = false;
+                                        return "invalid";
+                                    })()
+                                }),
+    
+                                // Delete Code Button
+                                m("button", {
+                                    onclick: () => {
+                                        form["fields"][findex]["code"].splice(cindex, 1);
+                                    }
+                                }, "Delete"),
+    
+                                // Code Image
+                                m("div", "List Image"),
+                                m("input", {
+                                    type: "file",
+                                    oninput: (e) => {
+                                        item["img"] = e.target.files[0];
+                                    },
+                                    accept: "image/png, image/jpeg",
+                                    class: (() => {
+                                        if (item["img"] === null || item["img"]["type"] === "image/png" || field["img"]["type"] === "image/jpeg") {
+                                            return "valid";
+                                        }
+                
+                                        formValid = false;
+                                        return "invalid";
+                                    })()
+                                })
+                            ])
+                        }))),
+    
+                        // Static Field Foot Section
+                        m("div", {
+                            class: "field-foot-section"
+                        }, [
+                            // Add Code
+                            m("button", {
+                                onclick: () => {
+                                    field.code.push({
+                                        value: null,
+                                        img: null
+                                    });
+                                }
+                            }, "Add Code"),
+                            m("div"),
+    
+                            // Delete Field Button
+                            m("button", {
+                                onclick: () => {
+                                    form["fields"].splice(findex, 1);
+                                }
+                            }, "Delete Field")
+                        ])
+                    ]),
+                ]
+            }))),
 
             // Static Form Footer Section
             m("div", {
-                id: "form-foot-section"
+                class: "form-foot-section"
             }, [
                 // Add Field Button
                 m("button", {
@@ -296,7 +338,12 @@ module.exports = {
                 // Submit / Create New Layer Button
                 m("button", {
                     onclick: () => {
-                        createExecute(form);
+                        if (formValid) {
+                            createExecute(form);
+                        }
+                        else {
+                            alert("Invalid Input")
+                        }
                     }
                 }, "Create New Layer"),
 

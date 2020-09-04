@@ -7,13 +7,13 @@ textarea, button, input {
 
 .root {
     font-family: 'Lucida Console';
-    max-width: 600px;
-    background-color: lightgrey;
+    max-width: 800px;
+    background-color: #ccd5dc;
     word-wrap: break-word;
 }
 
 .head{
-    background-color: darkblue;
+    background-color: #003153;
     display: grid;
     padding: 10px 10px 10px 10px;
     grid-template-columns: 20% 60% 20%; 
@@ -27,27 +27,27 @@ textarea, button, input {
 
 /* home.js */
 
-#layer-list-search {
+.layer-list-search {
     padding: 10px 10px 0px 10px;
     display: grid;
     grid-template-columns: 20% 60% 20%;
 }
 
-#layer-list-header {
+.layer-list-header {
     padding: 10px 10px 10px 10px;
     display: grid;
     grid-template-columns: 20% 60% 20%;
 }
 
-#layer-list-entry {
+.layer-list-entry {
     border-top: solid;
-    border-top-color: grey;
+    border-top-color: #ccd5dc;
     padding: 10px 10px 10px 10px;
     display: grid;
     grid-template-columns: 20% 80%;
 }
 
-#left-ten {
+.left-ten {
     padding-left: 10px;
     display: grid;
     grid-template-columns: 100%; 
@@ -55,47 +55,66 @@ textarea, button, input {
 
 /* create.js */
 
-#layer-name-element{
+.createWrapper{
+    font-family: 'Lucida Console';
+    max-width: 800px;
+    background-color: #ccd5dc;
+    word-wrap: break-word;
+}
+
+.layer-name-element{
+    padding: 10px 10px 0px 10px;
+    display: grid;
+    grid-template-columns: 20% 30% 30%; 
+}
+
+.layer-info-element{
     padding: 10px 10px 10px 10px;
     display: grid;
     grid-template-columns: 20% 60%; 
 }
 
-#field-section {
+.field-section {
     padding: 10px 10px 10px 10px;
     border-top: solid;
-    border-top-color: grey;
+    border-top-color: #003153;
 }
 
-#field-meta-section {
+.field-meta-section {
     display: grid;
     grid-template-columns: 20% 60%; 
 }
 
-#code-section {
+.code-section {
     padding-top: 10px;
     display: grid;
     grid-template-columns: 20% 60% 20%;
 }
 
-#field-foot-section {
+.field-foot-section {
     padding-top: 10px;
     display: grid;
     grid-template-columns: 20% 60% 20%;
 }
 
-#form-foot-section {
+.form-foot-section {
     padding: 10px 10px 10px 10px;
     border-top: solid;
-    border-top-color: grey;
+    border-top-color: #003153;
     display: grid;
     grid-template-columns: 20% 60% 20%;
 }
 
-#invalid {
-    background-color: yellow;
+.invalid {
+    background-color: #7f98a9;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #ccd5dc;
 }
 
-#valid {
-    
+.valid {
+    background-color: white;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #ccd5dc;
 }
