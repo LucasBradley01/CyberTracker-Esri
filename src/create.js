@@ -1,17 +1,23 @@
 let m = require("mithril");
 let createExecute = require("./createExecute");
 
-let form = {
-    name: null,
-    img: null,
-    description: null,
+let mtdt = [{
+    url: "",
+    uid: "",
+    name: "",
+    icon: null,
+    iconName: "",
+    icons: [],
+    description: "",
     fields: [{
-        name: null,
-        type: null,
-        img: null,
-        code: [],
-    }],
-}
+        uid: "",
+        name: "",
+        icon: null,
+        iconName: "",
+        type: "",
+        list: [],
+    }]
+}]
 
 // 0 48 -
 // 9 57 
@@ -86,15 +92,16 @@ module.exports = {
                 m("div"),
                 m("input", {
                     oninput: (e) => {
-                        form["name"] = e["target"]["value"];
+                        mtdt[0]["name"] = e["target"]["value"];
+                        mtdt[0]["uid"] = mtdt[0]["name"];
                     },
-                    value: form["name"],
+                    value: mtdt[0]["name"],
                     class: (() => {
                         const nameInUse = state["layers"].find((layer) => {
-                            return layer["title"] === form["name"];
+                            return layer["title"] === mtdt[0]["name"];
                         });
 
-                        if (form["name"] === null || nameInUse || !validChar(form["name"]) || form["name"] === "") {
+                        if (mtdt[0]["name"] === {} || nameInUse || !validChar(mtdt[0]["name"]) || mtdt[0]["name"] === "") {
                             return "invalid";
                         }
 
@@ -106,11 +113,12 @@ module.exports = {
                 m("input", {
                     type: "file",
                     oninput: (e) => {
-                        form["img"] = e.target.files[0];
+                        mtdt[0]["icon"] = e["target"]["files"][0];
+                        mtdt[0]["iconName"] = mtdt[0]["icon"]["name"];
                     },
                     accept: "image/png, image/jpeg",
                     class: (() => {
-                        if (form["img"] === null || form["img"]["type"] === "image/png" || form["img"]["type"] === "image/jpeg") {
+                        if (mtdt[0]["icon"] === null || mtdt[0]["icon"]["type"] === "image/png" || mtdt[0]["icon"]["type"] === "image/jpeg") {
                             return "valid";
                         }
 
@@ -118,8 +126,6 @@ module.exports = {
                         return "invalid";
                     })()
                 }, "Browse"),
-
-
             ]),
 
             m("div", {
@@ -131,15 +137,15 @@ module.exports = {
                 m("div"),
                 m("textarea", {
                     oninput: (e) => {
-                        form["description"] = e.target.value;
+                        mtdt[0]["description"] = e.target.value;
                     },
-                    value: form["description"],
+                    value: mtdt[0]["description"],
                     class: "valid"
                 })
             ]), 
             
             // Dynamic Fields Section
-            m("div", [].concat(form["fields"].map((field, findex) => {
+            m("div", [].concat(mtdt[0]["fields"].map((field, findex) => {
                 return [
                     m("div", {
                         class: "field-section"
@@ -153,20 +159,21 @@ module.exports = {
                             m("input", {
                                 oninput: (e) => {
                                     field["name"] = e["target"]["value"];
+                                    field["uid"] = mtdt[0]["name"] + "/" + field["name"];
                                 },
                                 value: field["name"],
                                 class: (() => {
                                     let valid = true;
-                                    if (field["name"] === "" || field["name"] === null || !validChar(field["name"])) {
+                                    if (field["name"] === "" || !validChar(field["name"])) {
                                         valid = false;
                                     }
                                     else {
-                                        for (let i = 0; i < form["fields"].length; i++) {
+                                        for (let i = 0; i < mtdt[0]["fields"].length; i++) {
                                             if (i === findex) {
                                                 continue;
                                             }
         
-                                            if (form["fields"][i]["name"] === field["name"]) {
+                                            if (mtdt[0]["fields"][i]["name"] === field["name"]) {
                                                 valid = false;
                                             }
                                         }
@@ -185,11 +192,11 @@ module.exports = {
                             m("div", "Field Type"),
                             m("select", {
                                 oninput: (e) => {
-                                    field["type"] = e.target.value
+                                    field["type"] = e["target"]["value"];
                                 },
                                 value: field["type"],
                                 class: (() => {
-                                    if (field["type"] === null) {
+                                    if (field["type"] === "") {
                                         formValid = false;
                                         return "invalid";
                                     }
@@ -213,11 +220,12 @@ module.exports = {
                             m("input", {
                                 type: "file",
                                 oninput: (e) => {
-                                    field["img"] = e.target.files[0];
+                                    field["icon"] = e["target"]["files"][0];
+                                    field["iconName"] = field["icon"]["name"];
                                 },
                                 accept: "image/png, image/jpeg",
                                 class: (() => {
-                                    if (field["img"] === null || field["img"]["type"] === "image/png" || field["img"]["type"] === "image/jpeg") {
+                                    if (field["icon"] === null || field["icon"]["type"] === "image/png" || field["icon"]["type"] === "image/jpeg") {
                                         return "valid";
                                     }
             
@@ -230,7 +238,7 @@ module.exports = {
                         // Dynamic Code Section
                         m("div", [
                             
-                        ].concat(field["code"].map((item, cindex) => {
+                        ].concat(field["list"].map((item, cindex) => {
                             return m("div", {
                                 class: "code-section"
                             }, [
@@ -238,20 +246,21 @@ module.exports = {
                                 m("div", "List Value"),
                                 m("input", {
                                     oninput: (e) => {
-                                        form["fields"][findex]["code"][cindex]["value"] = e["target"]["value"];
+                                        item["name"] = e["target"]["value"];
+                                        item["uid"] = mtdt[0]["name"] + "/" + field["name"] + "/" + item["name"];
                                     },
                                     class: (() => {
                                         let valid = true;
-                                        if (item["value"] === "" || item["value"] === null || !validChar(item["value"])) {
+                                        if (item["name"] === "" || !validChar(item["name"])) {
                                             valid = false;
                                         }
                                         else {
-                                            for (let i = 0; i < field["code"].length; i++) {
+                                            for (let i = 0; i < field["list"].length; i++) {
                                                 if (i === cindex) {
                                                     continue;
                                                 }
             
-                                                if (field["code"][i]["value"] === item["value"]) {
+                                                if (field["list"][i]["name"] === item["name"]) {
                                                     valid = false;
                                                 }
                                             }
@@ -269,7 +278,7 @@ module.exports = {
                                 // Delete Code Button
                                 m("button", {
                                     onclick: () => {
-                                        form["fields"][findex]["code"].splice(cindex, 1);
+                                        mtdt[0]["fields"][findex]["list"].splice(cindex, 1);
                                     }
                                 }, "Delete"),
     
@@ -278,11 +287,12 @@ module.exports = {
                                 m("input", {
                                     type: "file",
                                     oninput: (e) => {
-                                        item["img"] = e.target.files[0];
+                                        item["icon"] = e["target"]["files"][0];
+                                        item["iconName"] = item["icon"]["name"];
                                     },
                                     accept: "image/png, image/jpeg",
                                     class: (() => {
-                                        if (item["img"] === null || item["img"]["type"] === "image/png" || field["img"]["type"] === "image/jpeg") {
+                                        if (item["icon"] === null || item["icon"]["type"] === "image/png" || field["icon"]["type"] === "image/jpeg") {
                                             return "valid";
                                         }
                 
@@ -300,18 +310,19 @@ module.exports = {
                             // Add Code
                             m("button", {
                                 onclick: () => {
-                                    field.code.push({
-                                        value: null,
-                                        img: null
+                                    field["list"].push({
+                                        uid: "",
+                                        name: "",
+                                        icon: null,
                                     });
                                 }
-                            }, "Add Code"),
+                            }, "Add Item"),
                             m("div"),
     
                             // Delete Field Button
                             m("button", {
                                 onclick: () => {
-                                    form["fields"].splice(findex, 1);
+                                    mtdt[0]["fields"].splice(findex, 1);
                                 }
                             }, "Delete Field")
                         ])
@@ -326,11 +337,13 @@ module.exports = {
                 // Add Field Button
                 m("button", {
                     onclick: () => {
-                        form["fields"].push({
-                            name: null,
-                            type: null,
-                            img: null,
-                            code: []
+                        mtdt[0]["fields"].push({
+                            uid: "",
+                            name: "",
+                            icon: null,
+                            iconName: "",
+                            type: "",
+                            list: [],
                         });
                     }
                 }, "Add Field"),
@@ -339,7 +352,7 @@ module.exports = {
                 m("button", {
                     onclick: () => {
                         if (formValid) {
-                            createExecute(form);
+                            createExecute(mtdt);
                         }
                         else {
                             alert("Invalid Input")
@@ -350,17 +363,22 @@ module.exports = {
                 // Reset Form Button
                 m("button", {
                     onclick: () => {
-                        form = {
-                            name: null,
-                            img: null,
-                            description: null,
+                        mtdt = [{
+                            url: "",
+                            uid: "",
+                            name: "",
+                            icon: null,
+                            icons: [],
+                            description: "",
                             fields: [{
-                                name: null,
-                                type: null,
-                                img: null,
-                                code: [],
-                            }],
-                        }
+                                uid: "",
+                                name: "",
+                                icon: null,
+                                iconName: "",
+                                type: "",
+                                list: [],
+                            }]
+                        }]
                     }
                 }, "Delete All"),
             ])

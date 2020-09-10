@@ -1,10 +1,11 @@
 let m = require("mithril");
-const state = JSON.parse(sessionStorage.getItem("state"));
+let icons = new Set();
 
 // Mission: create a layer on ArcGIS
-async function createLayer(form) {
+async function createLayer(mtdt) {
     // Step 1: Create a Feature Serviec on ArcGIS using their
     // REST API createService call
+    const state = JSON.parse(sessionStorage.getItem("state"));
 
     let body = new FormData();
     body.append("token", state["token"]);
@@ -16,7 +17,7 @@ async function createLayer(form) {
         "maxRecordCount": 2000,
         "supportedQueryFormats": "JSON",
         "capabilities": "Query,Editing,Create,Update,Delete,Extract",
-        "description": form["description"],
+        "description": mtdt[0]["description"],
         "allowGeometryUpdates": true,
         "hasStaticData": false,
         "units": "esriMeters",
@@ -48,7 +49,7 @@ async function createLayer(form) {
             "wkid": 4326
         },
         "tables": [],
-        "name": form["name"]
+        "name": mtdt[0]["name"]
     }));
 
     let response = await m.request({
@@ -74,10 +75,10 @@ async function createLayer(form) {
                     "srid":4326
                 }
             },
-            "name": form["name"],
+            "name": mtdt[0]["name"],
             "type": "Feature Layer",
             "displayField": "",
-            "description": form["description"],
+            "description": mtdt[0]["description"],
             "copyrightText": "",
             "defaultVisibility": true,
             "relationships": [],
@@ -177,9 +178,9 @@ async function createLayer(form) {
         }]
     };
 
-    for (let i = 0; i < form["fields"].length; i++) {  
-        let field = form["fields"][i];            
-        let title = form["name"] + "/" + field["name"];  
+    for (let i = 0; i < mtdt[0]["fields"].length; i++) {  
+        let field = mtdt[0]["fields"][i];            
+        let title = mtdt[0]["name"] + "/" + field["name"];  
         let length = null;
         let squlType;
 
@@ -230,7 +231,7 @@ async function createLayer(form) {
     }
 
     body = new FormData();
-    body.append("description", form["description"]);
+    body.append("description", mtdt[0]["description"]);
     body.append("clearEmptyFields", "true");
     body.append("id", itemId);
     body.append("folderId", state["CTLayers"]);
@@ -246,31 +247,33 @@ async function createLayer(form) {
     })
 
     if (response["error"]) {
-        console.log(response);
         return response;
     }
 
     return {
         type: "createLayerResponse",
         url: serviceUrl,        
-        uid: form["name"]
     };
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function uploadIcon(uid, img) {
-    if (img === null) {
+async function uploadIcon(icon) {
+    if (icon === null || icons.has(icon["name"])) {
         return {
-            error: "No icon chosen"
+            type: "redundant"
         };
     }
+
+    icons.add(icon["name"]);
     
+    const state = JSON.parse(sessionStorage.getItem("state"));
+
     let body = new FormData();
-    body.append("file", img);
+    body.append("file", icon);
     body.append("f", "json");
     body.append("token", state["token"]);
-    body.append("title", img["name"]);
+    body.append("title", icon["name"]);
 
     let url = "https://www.arcgis.com/sharing/rest/content/users/" + state["username"] + "/" + state["CTIcons"] + "/addItem";
 
@@ -281,34 +284,35 @@ async function uploadIcon(uid, img) {
     })
 
     if (response["error"]) {
-        console.log(response);
+        response["name"] = icon["name"];
         return response;
     }
 
     return {
         type: "uploadIconResponse",
         id: response["id"],
-        uid: uid
+        name: icon["name"]
     };
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function uploadMetadata(layerMetadata) {
-    const metadataName = layerMetadata["layers"][0]["name"] + "/" + "Metadata";
+async function uploadMetadata(mtdt) {
+    const metadataName = mtdt[0]["name"] + "_mtdt";
     
     const metadataFile = new File([
-        JSON.stringify(layerMetadata)
+        JSON.stringify(mtdt)
     ], metadataName, {
         type: "application/json"
     });
+
+    const state = JSON.parse(sessionStorage.getItem("state"));
 
     let body = new FormData();
     body.append("file", metadataFile);
     body.append("f", "json");
     body.append("token", state["token"]);
     body.append("title", metadataName);
-    body.append("type", "GeoJson");
 
     let url = "https://www.arcgis.com/sharing/rest/content/users/" + state["username"] + "/" + state["CTMetadata"] + "/addItem";
 
@@ -328,112 +332,54 @@ async function uploadMetadata(layerMetadata) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Mission: create a feature layer, upload all the icons which correspond to the layer, fields, or list items of
-// said feature layer, construct a json object which keeps track of all relevant layer information for
-// the cyber tracker data capture application, and finally upload that file.
-module.exports = async (form) => {
-    // To create the metadata json file we must collect the id's and urls returned by all the uploads and
-    // service creations. We collect them as promises in an array aptly named promises
+module.exports = async (mtdt) => {
     let promises = [];
-
-    // Section 1: make all necessary http requests and push them to the promises array and build up the
-    // metadata json object
-    promises.push(createLayer(form));
-
-    let layerMetadata = {
-        "type": "FeatureCollection",
-        "layers": [{
-            "uid": form["name"],
-            "name": form["name"],
-            "icon": form["img"] === null ? null : form["img"]["name"],
-            "iconId": null,
-            "url": null,
-            "fields": []
-        }]
-    }
-
-    promises.push(uploadIcon(form["name"], form["img"]));
-
-    for (let i = 0; i < form["fields"].length; i++) {
-        const field = form["fields"][i];
-        const fieldName = field["name"];
-        const fieldUid = form["name"] + "/" + fieldName;
-
-        // We need fieldIndex to access this element later, push returns
-        // the length, we need the last element, thus the (-1)
-        const fieldIndex = (-1) + layerMetadata["layers"][0]["fields"].push({
-            "uid": fieldUid,
-            "name": fieldName,
-            "type": field["type"],
-            "iconName": field["img"] === null ? null : field["img"]["name"],
-            "iconId": null
-        });
-
-        promises.push(uploadIcon(fieldUid, field["img"]));
-
-        if (field["code"].length > 0) {
-            layerMetadata["layers"][0]["fields"][fieldIndex]["list"] = [];
-            for (let j = 0; j < field["code"].length; j++) {
-                const item = field["code"][j];
-                const itemUid = fieldUid + "/" + item["name"];
-
-                layerMetadata["layers"][0]["fields"][fieldIndex]["list"].push({
-                    "uid": itemUid,
-                    "name": item["name"],
-                    "iconName": item["img"] === null ? null : item["img"]["name"],
-                    "iconId": null
-                })
-
-                promises.push(uploadIcon(itemUid, item["img"]));
-            }
+    promises.push(createLayer(mtdt));
+    promises.push(uploadIcon(mtdt[0]["icon"]));
+    for (let i = 0; i < mtdt[0]["fields"].length; i++) {
+        promises.push(uploadIcon(mtdt[0]["fields"][i]["icon"]));
+        for (let j = 0; j < mtdt[0]["fields"][i]["list"].length; j++) {
+            promises.push(uploadIcon(mtdt[0]["fields"][i]["list"][j]["icon"]));
         }
     }
+
+    const state = JSON.parse(sessionStorage.getItem("state"));
+    const CTIcons = await m.request({
+        url: "https://www.arcgis.com/sharing/rest/content/users/" + state["username"] + "/" + state["CTIcons"] + "?f=json&token=" + state["token"],
+        method: "GET"
+    })
 
     const responses = await Promise.all(promises);
-    
-    // Section 2: based upon the responses fill in the icondId's and the url of the
-    // metadata object
-    for (let i = 0; i < responses.length; i++) {        
+    for (let i = 0; i < responses.length; i++) {
         const response = responses[i];
         if (response["error"]) {
-            console.log(response);
-            continue;
+            if (response["error"]["code"] === 409) {                
+                let item = CTIcons["items"].find((e) => {
+                    return e["name"] = response["name"];
+                })
+
+                console.log(CTIcons);
+                console.log(item);
+
+                mtdt[0]["icons"].push({
+                    name: item["name"],
+                    id: item["id"]
+                })
+            }
+            else {
+                console.log(response);
+            }
         }
-        
-        if (response["type"] === "createLayerResponse") {
-            layerMetadata["layers"][0]["url"] = response["url"];
+        else if (response["type"] === "createLayerResponse") {
+            mtdt[0]["url"] = response["url"];
         }
         else if (response["type"] === "uploadIconResponse") {
-            const uid = response["uid"];
-            // The uid of every element is based upon the hierarchy of the layer,
-            // field, and list item. So we can 
-            const splitUid = uid.split("/");
-            
-            if (splitUid.length === 3) {
-                const fields = layerMetadata["layers"][0]["fields"];
-                const fieldIndex = fields.findIndex((field) => {
-                    return field["name"] === splitUid[1];
-                });
-
-                const itemIndex = fields[fieldIndex]["list"].findIndex((item) => {
-                    return item["uid"] === uid;
-                });
-
-                layerMetadata["layers"][0]["fields"][fieldIndex]["list"][itemIndex]["iconId"] = response["id"];
-            }
-            else if (splitUid.length === 2) {
-                const fields = layerMetadata["layers"][0]["fields"];
-                const fieldIndex = fields.findIndex((field) => {
-                    return field["uid"] === uid;
-                });
-                
-                layerMetadata["layers"][0]["fields"][fieldIndex]["iconId"] = response["id"];
-            }
-            else if (splitUid.length === 1) {
-                layerMetadata["layers"][0]["iconId"] = response["id"];
-            }
+            mtdt[0]["icons"].push({
+                name: response["name"],
+                id: response["id"]
+            })
         }
     }
 
-    uploadMetadata(layerMetadata);
+    uploadMetadata(mtdt);
 }
