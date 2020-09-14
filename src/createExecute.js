@@ -1,5 +1,5 @@
-let m = require("mithril");
-let icons = new Set();
+const m = require("mithril");
+const JSZip = require("jszip");
 
 // Mission: create a layer on ArcGIS
 async function createLayer(mtdt) {
@@ -258,69 +258,32 @@ async function createLayer(mtdt) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function uploadIcon(icon) {
-    if (icon === null || icons.has(icon["name"])) {
-        return {
-            type: "redundant"
-        };
-    }
-
-    icons.add(icon["name"]);
-    
+async function uploadZip(zipFilename, zip) {
     const state = JSON.parse(sessionStorage.getItem("state"));
 
-    let body = new FormData();
-    body.append("file", icon);
-    body.append("f", "json");
-    body.append("token", state["token"]);
-    body.append("title", icon["name"]);
-
-    let url = "https://www.arcgis.com/sharing/rest/content/users/" + state["username"] + "/" + state["CTIcons"] + "/addItem";
-
-    let response = await m.request({
-        url: url,
-        method: "POST",
-        body: body
-    })
-
-    if (response["error"]) {
-        response["name"] = icon["name"];
-        return response;
-    }
-
-    return {
-        type: "uploadIconResponse",
-        id: response["id"],
-        name: icon["name"]
-    };
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-async function uploadMetadata(mtdt) {
-    const metadataName = mtdt[0]["name"] + "_mtdt";
-    
-    const metadataFile = new File([
-        JSON.stringify(mtdt)
-    ], metadataName, {
-        type: "application/json"
+    const zipBlob = await zip.generateAsync({
+        type: "blob"
     });
 
-    const state = JSON.parse(sessionStorage.getItem("state"));
+    const zipFile = new File([
+        zipBlob
+    ], zipFilename, {
+        type: "application/zip"
+    })
 
     let body = new FormData();
-    body.append("file", metadataFile);
+    body.append("file", zipFile);
     body.append("f", "json");
     body.append("token", state["token"]);
-    body.append("title", metadataName);
+    body.append("title", zipFilename);
 
     let url = "https://www.arcgis.com/sharing/rest/content/users/" + state["username"] + "/" + state["CTMetadata"] + "/addItem";
 
-    let response = await m.request({
+    response = await m.request({
         url: url,
         method: "POST",
         body: body
-    })
+    })    
 
     if (response["error"]) {
         console.log(response);
@@ -332,54 +295,169 @@ async function uploadMetadata(mtdt) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-module.exports = async (mtdt) => {
-    let promises = [];
-    promises.push(createLayer(mtdt));
-    promises.push(uploadIcon(mtdt[0]["icon"]));
-    for (let i = 0; i < mtdt[0]["fields"].length; i++) {
-        promises.push(uploadIcon(mtdt[0]["fields"][i]["icon"]));
-        for (let j = 0; j < mtdt[0]["fields"][i]["list"].length; j++) {
-            promises.push(uploadIcon(mtdt[0]["fields"][i]["list"][j]["icon"]));
+function createelementsQml(mtdt) {
+    let elementsQml = "import CyberTracker.Engine 1.0\n\n";
+
+    elementsQml += ("Element {\n");
+
+    // Build up the layers top section
+    elementsQml += ("    Element {\n");
+    elementsQml += ("        uid: \"layers\"\n");
+    elementsQml += ("        name: \"layers\"\n");
+
+    for (let i = 0; i < mtdt.length; i++) {
+        // fieldUids is a list of all the uids this element uses,
+        // photos and location are on by default
+        let fieldUids = "[\"__photos\", \"__location\"";
+        for (let j = 0; j < mtdt[i]["fields"].length; j++) {
+            fieldUids += (", \"" + mtdt[i]["fields"][j]["uid"] + "\"");
+        }
+        fieldUids += ("]");
+        
+        // Create an element for every layer
+        elementsQml += ("        Element {\n");
+        elementsQml += ("            uid: \"" + mtdt[i]["uid"] + "\"\n");
+        elementsQml += ("            name: \"" + mtdt[i]["name"] + "\"\n");
+        elementsQml += ("            icon: \"" + mtdt[i]["iconName"] + "\"\n");
+        elementsQml += ("            fieldUids: " + fieldUids + "\n");
+        elementsQml += ("        }\n");
+    }
+
+    elementsQml += ("    }");
+
+    // Append all of the fields
+    elementsQml += ("    Element {\n");
+    elementsQml += ("        uid: \"__location\"\n");
+    elementsQml += ("    }\n");
+    elementsQml += ("    Element {\n");
+    elementsQml += ("        uid: \"__photos\"\n");
+    elementsQml += ("    }\n");
+    
+    for (let i = 0; i < mtdt.length; i++) {
+        for (let j = 0; j < mtdt[i]["fields"].length; j++) {
+            let field = mtdt[i]["fields"][j];
+            elementsQml += ("    Element {\n");
+            elementsQml += ("        uid: \"" + field["uid"] + "\"\n");
+            elementsQml += ("        name: \"" + field["name"] + "\"\n");
+            elementsQml += ("        icon: \"" + field["iconName"] + "\"\n");
+            for (let k = 0; k < field["list"].length; k++) {
+                let item = field["list"][k];
+                elementsQml += ("        Element {\n");
+                elementsQml += ("            uid: \"" + item["uid"] + "\"\n");
+                elementsQml += ("            name: \"" + item["name"] + "\"\n");
+                elementsQml += ("            icon: \"" + item["iconName"] + "\"\n");
+                elementsQml += ("        }\n");
+            }
+            elementsQml += ("    }\n");
         }
     }
 
-    const state = JSON.parse(sessionStorage.getItem("state"));
-    const CTIcons = await m.request({
-        url: "https://www.arcgis.com/sharing/rest/content/users/" + state["username"] + "/" + state["CTIcons"] + "?f=json&token=" + state["token"],
-        method: "GET"
-    })
+    elementsQml  += ("}")
 
-    const responses = await Promise.all(promises);
-    for (let i = 0; i < responses.length; i++) {
-        const response = responses[i];
-        if (response["error"]) {
-            if (response["error"]["code"] === 409) {                
-                let item = CTIcons["items"].find((e) => {
-                    return e["name"] = response["name"];
-                })
+    return elementsQmlFile = new File([
+        elementsQml
+    ], "Elements.qml", {
+        type: "text/plain"
+    });
+}
 
-                console.log(CTIcons);
-                console.log(item);
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-                mtdt[0]["icons"].push({
-                    name: item["name"],
-                    id: item["id"]
-                })
+function createFieldsQml(mtdt) {
+    let fieldsQml = "import CyberTracker.Engine 1.0\n\n"
+
+    fieldsQml += ("RecordField {\n");
+    fieldsQml += ("    LocationField {\n");
+    fieldsQml += ("        uid: \"__location\"\n");
+    fieldsQml += ("        nameElementUid: \"Location\"\n");
+    fieldsQml += ("        required: true\n");
+    fieldsQml += ("    }\n");
+    fieldsQml += ("    PhotoField {\n");
+    fieldsQml += ("        uid: \"__photos\"\n");
+    fieldsQml += ("        nameElementUid: \"Photos\"\n");
+    fieldsQml += ("        maxCount: 16\n");
+    fieldsQml += ("    }\n");
+    fieldsQml += ("    TextField {\n");
+    fieldsQml += ("        uid: \"reportUid\"\n");
+    fieldsQml += ("        nameElementUid: \"layers\"\n");
+    fieldsQml += ("        listElementUid: \"layers\"\n");
+    fieldsQml += ("    }\n");
+
+    for (let i = 0; i < mtdt.length; i++) {
+        for (let j = 0; j < mtdt[i]["fields"].length; j++) {
+            let field = mtdt[i]["fields"][j];
+            if (field["type"] === "esriFieldTypeString") {
+                fieldsQml += ("    TextField {\n");
+                fieldsQml += ("        uid: \"" + field["uid"] + "\"\n");
+                fieldsQml += ("        nameElementUid: \"" + field["uid"] + "\"\n");
+                if (field["list"].length > 0) fieldsQml += ("        listElementUid: \"" + field["uid"] + "\"\n");
+                fieldsQml += ("        exportUid: \"" + field["name"] + "\"\n");
+                fieldsQml += ("        pattern: \".*\\\\S.*\"\n");
+                fieldsQml += ("        multiLine: true\n");
+                fieldsQml += ("    }\n");
             }
             else {
-                console.log(response);
+                let decimals = field["type"] === "esriFieldTypeInteger" ? 0 : 4;
+                fieldsQml += ("    NumberField {\n");
+                fieldsQml += ("        uid: \"" + field["uid"] + "\"\n");
+                fieldsQml += ("        nameElementUid: \"" + field["uid"] + "\"\n");
+                if (field["list"].length > 0) fieldsQml += ("        listElementUid: \"" + field["uid"] + "\"\n");
+                fieldsQml += ("        exportUid: \"" + field["name"] + "\"\n");
+                fieldsQml += ("        decimals: " + decimals + "\n");
+                fieldsQml += ("    }\n");
             }
-        }
-        else if (response["type"] === "createLayerResponse") {
-            mtdt[0]["url"] = response["url"];
-        }
-        else if (response["type"] === "uploadIconResponse") {
-            mtdt[0]["icons"].push({
-                name: response["name"],
-                id: response["id"]
-            })
         }
     }
 
-    uploadMetadata(mtdt);
+    fieldsQml += ("}")
+
+    return new File([
+        fieldsQml
+    ], "Fields.qml", {
+        type: "text/plain"
+    })
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+module.exports = async function createExecute(mtdt) {
+    let zip = new JSZip();
+
+    const createLayerPromise = createLayer(mtdt);
+
+    for (let i = 0; i < mtdt.length; i++) {
+        const layer = mtdt[i];
+        if (layer["icon"] !== null) zip.file(layer["icon"]["name"], layer["icon"]);
+        for (let j = 0; j < layer["fields"].length; j++) {
+            const field = layer["fields"][j];
+            if (field["icon"] !== null) zip.file(field["icon"]["name"], field["icon"]);
+            for (let k = 0; k < field["list"].length; k++) {
+                const item = field["list"][k];
+                if (item["icon"] !== null) zip.file(item["icon"]["name"], item["icon"]);
+            }
+        }
+    }
+
+    const elementsQmlFile = createelementsQml(mtdt);
+    zip.file("Elements.qml", elementsQmlFile);
+
+    const fieldsQmlFile = createFieldsQml(mtdt);
+    zip.file("Fields.qml", fieldsQmlFile);
+
+    let response = await createLayerPromise;
+    if (response["error"]) {
+        console.log(response);
+        return;
+    }
+    mtdt[0]["url"] = response["url"];
+    
+    const mtdtFile = new File([
+        JSON.stringify(mtdt)
+    ], "mtdt.json", {
+        type: "application/json"
+    });
+    zip.file("mtdt.json", mtdtFile);
+
+    const zipFilename = mtdt[0]["name"] + ".zip";
+    response = await uploadZip(zipFilename, zip);
 }

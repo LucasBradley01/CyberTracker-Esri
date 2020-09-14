@@ -6,14 +6,13 @@ let mtdt = [{
     uid: "",
     name: "",
     icon: null,
-    iconName: "",
-    icons: [],
+    iconName: "qrc:/Esri/logo.png",
     description: "",
     fields: [{
         uid: "",
         name: "",
         icon: null,
-        iconName: "",
+        iconName: "qrc:/Esri/logo.png",
         type: "",
         list: [],
     }]
@@ -341,7 +340,7 @@ module.exports = {
                             uid: "",
                             name: "",
                             icon: null,
-                            iconName: "",
+                            iconName: "qrc:/Esri/logo.png",
                             type: "",
                             list: [],
                         });
@@ -351,7 +350,7 @@ module.exports = {
                 // Submit / Create New Layer Button
                 m("button", {
                     onclick: () => {
-                        if (formValid) {
+                        if (true || formValid) {
                             createExecute(mtdt);
                         }
                         else {
@@ -368,13 +367,13 @@ module.exports = {
                             uid: "",
                             name: "",
                             icon: null,
-                            icons: [],
+                            iconName: "qrc:/Esri/logo.png",
                             description: "",
                             fields: [{
                                 uid: "",
                                 name: "",
                                 icon: null,
-                                iconName: "",
+                                iconName: "qrc:/Esri/logo.png",
                                 type: "",
                                 list: [],
                             }]

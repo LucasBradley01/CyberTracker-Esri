@@ -9,6 +9,7 @@
   "author": "Lucas Bradley",
   "license": "ISC",
   "dependencies": {
+    "jszip": "^3.5.0",
     "mithril": "^2.0.4"
   },
   "devDependencies": {
