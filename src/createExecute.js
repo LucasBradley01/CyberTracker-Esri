@@ -16,10 +16,10 @@ async function createLayer(mtdt) {
     body.append("createParameters", JSON.stringify({
         "maxRecordCount": 2000,
         "supportedQueryFormats": "JSON",
-        "capabilities": "Query,Editing,Create,Update,Delete,Extract",
-        "description": mtdt[0]["description"],
+        "capabilities": "Query",
+        "description": "",
         "allowGeometryUpdates": true,
-        "hasStaticData": false,
+        "hasStaticData": true,
         "units": "esriMeters",
         "syncEnabled": false,
         "editorTrackingInfo": {
@@ -28,8 +28,8 @@ async function createLayer(mtdt) {
             "allowOthersToQuery": true,
             "allowOthersToUpdate": true,
             "allowOthersToDelete": false,
-            "allowAnonymousToUpdate": false,
-            "allowAnonymousToDelete": false
+            "allowAnonymousToUpdate": true,
+            "allowAnonymousToDelete": true
         },
         "xssPreventionInfo": {
             "xssPreventionEnabled": true,
@@ -53,7 +53,7 @@ async function createLayer(mtdt) {
     }));
 
     let response = await m.request({
-        url: "https://www.arcgis.com/sharing/rest/content/users/" + state["username"] + "/" + state["CTLayers"] + "/createService",
+        url: "https://www.arcgis.com/sharing/rest/content/users/" + state["username"] + "/createService",
         method: "POST",
         body: body,
     })
@@ -69,7 +69,8 @@ async function createLayer(mtdt) {
 
     let layer = {
         "layers": [{
-            "adminLayerInfo": {
+            "adminLayerInfo":
+            {
                 "geometryField": {
                     "name": "Shape",
                     "srid":4326
@@ -78,7 +79,7 @@ async function createLayer(mtdt) {
             "name": mtdt[0]["name"],
             "type": "Feature Layer",
             "displayField": "",
-            "description": mtdt[0]["description"],
+            "description": "",
             "copyrightText": "",
             "defaultVisibility": true,
             "relationships": [],
@@ -165,7 +166,7 @@ async function createLayer(mtdt) {
                 {
                     "name": "New Feature",
                     "description": "",
-                        "drawingTool": "esriFeatureEditToolPoint",
+                    "drawingTool": "esriFeatureEditToolPoint",
                     "prototype": {
                         "attributes": {}
                     }
@@ -180,7 +181,7 @@ async function createLayer(mtdt) {
 
     for (let i = 0; i < mtdt[0]["fields"].length; i++) {  
         let field = mtdt[0]["fields"][i];            
-        let title = mtdt[0]["name"] + "/" + field["name"];  
+        ///let title = mtdt[0]["name"] + "/" + field["name"];  
         let length = null;
         let squlType;
 
@@ -197,7 +198,7 @@ async function createLayer(mtdt) {
         }
         
         layer["layers"][0]["fields"].push({
-            "name": title,
+            "name": field["name"],
             "type": field["type"],
             "alias": field["name"],
             "sqlType": squlType,
@@ -208,7 +209,7 @@ async function createLayer(mtdt) {
             "length": length
         });
 
-        layer["layers"][0]["templates"][0]["prototype"]["attributes"][title] = null;
+        layer["layers"][0]["templates"][0]["prototype"]["attributes"][field["name"]] = null;
     }
 
     body = new FormData();
@@ -231,22 +232,34 @@ async function createLayer(mtdt) {
     }
 
     body = new FormData();
-    body.append("description", mtdt[0]["description"]);
-    body.append("clearEmptyFields", "true");
-    body.append("id", itemId);
-    body.append("folderId", state["CTLayers"]);
+    body.append("token", state["token"]);
     body.append("f", "json");
-    body.append("token", state["token"]);    
+    body.append("updateDefinition", JSON.stringify({
+        "hasStaticData": false,
+        "capabilities": "Query,Editing,Create,Update,Delete,Extract",
+        "allowGeometryUpdates": true,
+        "editorTrackingInfo": {
+            "enableEditorTracking": false,
+            "enableOwnershipAccessControl": false,
+            "allowOthersToUpdate": true,
+            "allowOthersToDelete": true,
+            "allowOthersToQuery": true,
+            "allowAnonymousToUpdate": true,
+            "allowAnonymousToDelete":true
+        }
+    }))
 
-    url = "https://www.arcgis.com/sharing/rest/content/users/" + state["username"] + "/" + state["CTLayers"] + "/items/" + itemId + "/update";
+    baseUrl = serviceUrl + "/updateDefinition";
+    url = baseUrl.slice(0, 58) + "admin/" + baseUrl.slice(58);
 
-    response = await m.request({
+    response = await         m.request({
         url: url,
         method: "POST",
-        body: body
-    })
+        body: body, 
+    });
 
     if (response["error"]) {
+        console.log(response);
         return response;
     }
 
@@ -277,7 +290,7 @@ async function uploadZip(zipFilename, zip) {
     body.append("token", state["token"]);
     body.append("title", zipFilename);
 
-    let url = "https://www.arcgis.com/sharing/rest/content/users/" + state["username"] + "/" + state["CTMetadata"] + "/addItem";
+    let url = "https://www.arcgis.com/sharing/rest/content/users/" + state["username"] + "/" + state["CTProjects"] + "/addItem";
 
     response = await m.request({
         url: url,
@@ -296,7 +309,7 @@ async function uploadZip(zipFilename, zip) {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function createelementsQml(mtdt) {
-    let elementsQml = "import CyberTracker.Engine 1.0\n\n";
+    let elementsQml = "import CyberTracker 1.0\n\n";
 
     elementsQml += ("Element {\n");
 
@@ -323,7 +336,7 @@ function createelementsQml(mtdt) {
         elementsQml += ("        }\n");
     }
 
-    elementsQml += ("    }");
+    elementsQml += ("    }\n");
 
     // Append all of the fields
     elementsQml += ("    Element {\n");
@@ -364,7 +377,7 @@ function createelementsQml(mtdt) {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function createFieldsQml(mtdt) {
-    let fieldsQml = "import CyberTracker.Engine 1.0\n\n"
+    let fieldsQml = "import CyberTracker 1.0\n\n"
 
     fieldsQml += ("RecordField {\n");
     fieldsQml += ("    LocationField {\n");
@@ -377,7 +390,7 @@ function createFieldsQml(mtdt) {
     fieldsQml += ("        nameElementUid: \"Photos\"\n");
     fieldsQml += ("        maxCount: 16\n");
     fieldsQml += ("    }\n");
-    fieldsQml += ("    TextField {\n");
+    fieldsQml += ("    StringField {\n");
     fieldsQml += ("        uid: \"reportUid\"\n");
     fieldsQml += ("        nameElementUid: \"layers\"\n");
     fieldsQml += ("        listElementUid: \"layers\"\n");
@@ -387,7 +400,7 @@ function createFieldsQml(mtdt) {
         for (let j = 0; j < mtdt[i]["fields"].length; j++) {
             let field = mtdt[i]["fields"][j];
             if (field["type"] === "esriFieldTypeString") {
-                fieldsQml += ("    TextField {\n");
+                fieldsQml += ("    StringField {\n");
                 fieldsQml += ("        uid: \"" + field["uid"] + "\"\n");
                 fieldsQml += ("        nameElementUid: \"" + field["uid"] + "\"\n");
                 if (field["list"].length > 0) fieldsQml += ("        listElementUid: \"" + field["uid"] + "\"\n");

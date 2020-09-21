@@ -63,15 +63,9 @@ textarea, button, input {
 }
 
 .layer-name-element{
-    padding: 10px 10px 0px 10px;
-    display: grid;
-    grid-template-columns: 20% 30% 30%; 
-}
-
-.layer-info-element{
     padding: 10px 10px 10px 10px;
     display: grid;
-    grid-template-columns: 20% 60%; 
+    grid-template-columns: 20% 30% 30%; 
 }
 
 .field-section {
@@ -117,4 +111,30 @@ textarea, button, input {
     border-style: solid;
     border-width: 1px;
     border-color: #ccd5dc;
+}
+
+/* TEST */
+#pc-root {
+    max-width: 800px;
+    background-color: #ccd5dc;
+    font-family: 'Lucida Console';
+}
+
+#pc-header {
+    background-color: #003153;
+    display: grid;
+    grid-template-columns: 25% 50% 25%;
+}
+
+#pc-form {
+    display: grid;
+    grid-template-columns: 25% 25% 25% 25%;
+    grid-template-areas: 
+        ". static-section static-section .";
+}
+
+#pc-form-static {
+    grid-area: static-section;
+    display: grid;
+    grid-template-columns: 50% 50%;
 }

@@ -9,10 +9,7 @@ let login = async () => {
         username: username,
         token: null,
         expires: null,
-        CTBundles: null,
-        CTMetadata: null,
-        CTIcons: null,
-        CTLayers: null,
+        CTProjects: null,
         layers: []
     }
     
@@ -53,7 +50,7 @@ let login = async () => {
     }
 
     // These are the folders that we need ArcGIS to have
-    const folders = ["CTBundles", "CTMetadata", "CTIcons", "CTLayers"];
+    const folders = ["CTProjects"];
 
     for (let i = 0; i < response["folders"].length; i++) {
         let title = response["folders"][i]["title"];

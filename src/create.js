@@ -7,7 +7,6 @@ let mtdt = [{
     name: "",
     icon: null,
     iconName: "qrc:/Esri/logo.png",
-    description: "",
     fields: [{
         uid: "",
         name: "",
@@ -126,22 +125,6 @@ module.exports = {
                     })()
                 }, "Browse"),
             ]),
-
-            m("div", {
-                class: "layer-info-element"
-            }, [
-                // Layer Info
-                m("div"),
-                m("div", "Layer Info"),
-                m("div"),
-                m("textarea", {
-                    oninput: (e) => {
-                        mtdt[0]["description"] = e.target.value;
-                    },
-                    value: mtdt[0]["description"],
-                    class: "valid"
-                })
-            ]), 
             
             // Dynamic Fields Section
             m("div", [].concat(mtdt[0]["fields"].map((field, findex) => {
@@ -368,7 +351,6 @@ module.exports = {
                             name: "",
                             icon: null,
                             iconName: "qrc:/Esri/logo.png",
-                            description: "",
                             fields: [{
                                 uid: "",
                                 name: "",
